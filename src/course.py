@@ -1,67 +1,36 @@
-from src.block import Block
 import numpy
 from numpy import float32
-from pyoctree import pyoctree
+
+class Block:
+    # for now only support (x,z)-centered cubes starting at integer height
+    def __init__(self, x = 0, y = 0, z = 0, x_min = 0.0, y_min = 0.0, z_min = 0.0, x_max = 1.0, y_max = 1.0, z_max = 1.0):
+        """
+        int, int, int, float
+        """
+        self.x = x
+        self.y = y
+        self.z = z
+        self.x_min = x_min
+        self.y_min = y_min
+        self.z_min = z_min
+        self.x_max = x_max
+        self.y_max = y_max
+        self.z_max = z_max
+
+    @classmethod
+    def block(cls, x = 0, y = 0, z = 0):
+        return cls(x, y, z, float(x), float(y), float(z), float(x + 1), float(y + 1), float(z + 1))
+    
+    # out of bounds method
+    @classmethod
+    def oob(cls):
+        return cls(0, -1, 0, 30000001.0, 257.0, 30000001.0, -30000001.0, -1.0, -30000001.0)
 
 class Course:
     def __init__(self, blocks):
         """
         blocks is a list of Blocks
         """
-        allPts = []
-        allTriangles = []
-        for i in range(len(blocks)):
-            b = blocks[i]
-
-            # create 8 vertices
-            pts = []
-
-            # upper face clockwise
-            pts.append([b.x - 0.300000011921, b.y + b.size, b.z - 0.300000011921])
-            pts.append([b.x + b.size + 0.300000011921, b.y + b.size, b.z - 0.300000011921])
-            pts.append([b.x + b.size + 0.300000011921, b.y + b.size, b.z + b.size + 0.300000011921])
-            pts.append([b.x - 0.300000011921, b.y + b.size, b.z + b.size + 0.300000011921])
-
-            # lower face clockwise
-            pts.append([b.x - 0.300000011921, b.y - 1.8, b.z - 0.300000011921])
-            pts.append([b.x + b.size + 0.300000011921, b.y - 1.8, b.z - 0.300000011921])
-            pts.append([b.x + b.size + 0.300000011921, b.y - 1.8, b.z + b.size + 0.300000011921])
-            pts.append([b.x - 0.300000011921, b.y - 1.8, b.z + b.size + 0.300000011921])
-
-            # create 12 triangles
-            triangles = []
-
-            # top face
-            triangles.append([0 + 8 * i, 1 + 8 * i, 2 + 8 * i])
-            triangles.append([0 + 8 * i, 2 + 8 * i, 3 + 8 * i])
-            
-            # back face
-            triangles.append([0 + 8 * i, 2 + 8 * i, 4 + 8 * i])
-            triangles.append([2 + 8 * i, 4 + 8 * i, 5 + 8 * i])
-
-            # left face
-            triangles.append([0 + 8 * i, 3 + 8 * i, 4 + 8 * i])
-            triangles.append([3 + 8 * i, 4 + 8 * i, 7 + 8 * i])
-
-            # right face
-            triangles.append([1 + 8 * i, 2 + 8 * i, 5 + 8 * i])
-            triangles.append([2 + 8 * i, 5 + 8 * i, 6 + 8 * i])
-
-            # front face
-            triangles.append([2 + 8 * i, 3 + 8 * i, 6 + 8 * i])
-            triangles.append([3 + 8 * i, 6 + 8 * i, 7 + 8 * i])
-
-            # bottom face
-            triangles.append([4 + 8 * i, 5 + 8 * i, 6 + 8 * i])
-            triangles.append([4 + 8 * i, 6 + 8 * i, 7 + 8 * i])
-            
-            allPts.extend(pts)
-            allTriangles.extend(triangles)
-        
-        ndPts = numpy.array(allPts, dtype=float)
-        ndTriangles = numpy.array(allTriangles, dtype=numpy.int32)
-        # print(ndPts)
-        # print('{0:.16f}'.format(ndPts[0][0]))
-        # print('{0:.16f}'.format(ndPts[8][2]))
-        # print(ndTriangles)
-        self.tree = pyoctree.PyOctree(ndPts, ndTriangles)
+        self.blocks = {}
+        for b in blocks:
+            self.blocks[(b.x, b.y, b.z)] = b
