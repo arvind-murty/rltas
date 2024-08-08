@@ -1,10 +1,10 @@
-from math import atan2, degrees, radians, sqrt, copysign, atan, asin, acos, sin, cos
+from math import sqrt, sin, cos, floor
 import numpy
 from src.course import Block
 from numpy import float32, int32, uint64
 
 class Input:
-    def __init__(self, sprint = False, sneak = False, jump = False, w = False, a = False, s = False, d = False, rotation = 0.0):
+    def __init__(self, w = False, a = False, s = False, d = False, sprint = False, sneak = False, jump = False, rotation = 0.0):
         self.w = w;
         self.a = a;
         self.s = s;
@@ -39,11 +39,7 @@ class Player:
         self.sprinting = False
     
     def __str__(self):
-        return f"x: {self.x}\ny: {self.y}\nz: {self.z}\nvx: {self.vx}\nvy: {self.vy}\nvz: {self.vz}"
-
-    def rad(self, deg):
-        """converts degrees to radians using stupid floats"""
-        return deg * float32(Player.PI) / float32(180.0)
+        return f"x: {self.x}\ny: {self.y}\nz: {self.z}\nvx: {self.vx}\nvy: {self.vy}\nvz: {self.vz}\n"
 
     def mcsin(self, rad):
         index = int(rad * float32(10430.378)) & 65535
@@ -68,23 +64,23 @@ class Player:
         # check y blockages
         next_airborne = True
         if self.vy <= 0.0:
-            b1 = course.blocks.get((int(self.x - Player.WIDTH), int(self.y + self.vy), int(self.z - Player.WIDTH)), Block.oob())
-            b2 = course.blocks.get((int(self.x - Player.WIDTH), int(self.y + self.vy), int(self.z + Player.WIDTH)), Block.oob())
-            b3 = course.blocks.get((int(self.x + Player.WIDTH), int(self.y + self.vy), int(self.z - Player.WIDTH)), Block.oob())
-            b4 = course.blocks.get((int(self.x + Player.WIDTH), int(self.y + self.vy), int(self.z + Player.WIDTH)), Block.oob())
+            b1 = course.blocks.get((floor(self.x - Player.WIDTH), floor(self.y + self.vy), floor(self.z - Player.WIDTH)), Block.oob())
+            b2 = course.blocks.get((floor(self.x - Player.WIDTH), floor(self.y + self.vy), floor(self.z + Player.WIDTH)), Block.oob())
+            b3 = course.blocks.get((floor(self.x + Player.WIDTH), floor(self.y + self.vy), floor(self.z - Player.WIDTH)), Block.oob())
+            b4 = course.blocks.get((floor(self.x + Player.WIDTH), floor(self.y + self.vy), floor(self.z + Player.WIDTH)), Block.oob())
             y_max = max(b1.y_max, b2.y_max, b3.y_max, b4.y_max)
             if y_max > 0.0:
                 next_airborne = False
-                # set vy to difference between current height and height of b if player hits it
+                # set vy to difference between current height and y_max (max height of block below) if player hits it
                 self.vy = max(self.vy, y_max - self.y)
         else:
-            b1 = course.blocks.get((int(self.x - Player.WIDTH), int(self.y + self.vy + Player.HEIGHT), int(self.z - Player.WIDTH)), Block.oob())
-            b2 = course.blocks.get((int(self.x - Player.WIDTH), int(self.y + self.vy + Player.HEIGHT), int(self.z + Player.WIDTH)), Block.oob())
-            b3 = course.blocks.get((int(self.x + Player.WIDTH), int(self.y + self.vy + Player.HEIGHT), int(self.z - Player.WIDTH)), Block.oob())
-            b4 = course.blocks.get((int(self.x + Player.WIDTH), int(self.y + self.vy + Player.HEIGHT), int(self.z + Player.WIDTH)), Block.oob())
+            b1 = course.blocks.get((floor(self.x - Player.WIDTH), floor(self.y + self.vy + Player.HEIGHT), floor(self.z - Player.WIDTH)), Block.oob())
+            b2 = course.blocks.get((floor(self.x - Player.WIDTH), floor(self.y + self.vy + Player.HEIGHT), floor(self.z + Player.WIDTH)), Block.oob())
+            b3 = course.blocks.get((floor(self.x + Player.WIDTH), floor(self.y + self.vy + Player.HEIGHT), floor(self.z - Player.WIDTH)), Block.oob())
+            b4 = course.blocks.get((floor(self.x + Player.WIDTH), floor(self.y + self.vy + Player.HEIGHT), floor(self.z + Player.WIDTH)), Block.oob())
             y_min = min(b1.y_min, b2.y_min, b3.y_min, b4.y_min)
             if y_min < 257.0:
-                # set vy to difference between current height and bottom of b (always 0) if player hits it
+                # set vy to difference between current height and y_min (min height of block above) if player hits it
                 self.vy = min(self.vy, y_min - self.y - Player.HEIGHT)
         self.y += self.vy
         
@@ -148,51 +144,51 @@ class Player:
             self.vx += float(strafe * cos_yaw - forward * sin_yaw)
             self.vz += float(forward * cos_yaw + strafe * sin_yaw)
 
-        # x blockage
+        # x blockage (untested)
         collided = False
         if self.vx <= 0:
-            b1 = course.blocks.get((int(self.x + self.vx - Player.WIDTH), int(self.y), int(self.z - Player.WIDTH)), Block.oob())
-            b2 = course.blocks.get((int(self.x + self.vx - Player.WIDTH), int(self.y) + 1, int(self.z - Player.WIDTH)), Block.oob())
-            b3 = course.blocks.get((int(self.x + self.vx - Player.WIDTH), int(self.y + Player.HEIGHT), int(self.z - Player.WIDTH)), Block.oob())
-            b4 = course.blocks.get((int(self.x + self.vx - Player.WIDTH), int(self.y), int(self.z + Player.WIDTH)), Block.oob())
-            b5 = course.blocks.get((int(self.x + self.vx - Player.WIDTH), int(self.y) + 1, int(self.z + Player.WIDTH)), Block.oob())
-            b6 = course.blocks.get((int(self.x + self.vx - Player.WIDTH), int(self.y + Player.HEIGHT), int(self.z + Player.WIDTH)), Block.oob())
+            b1 = course.blocks.get((floor(self.x + self.vx - Player.WIDTH), floor(self.y), floor(self.z - Player.WIDTH)), Block.oob())
+            b2 = course.blocks.get((floor(self.x + self.vx - Player.WIDTH), floor(self.y) + 1, floor(self.z - Player.WIDTH)), Block.oob())
+            b3 = course.blocks.get((floor(self.x + self.vx - Player.WIDTH), floor(self.y + Player.HEIGHT), floor(self.z - Player.WIDTH)), Block.oob())
+            b4 = course.blocks.get((floor(self.x + self.vx - Player.WIDTH), floor(self.y), floor(self.z + Player.WIDTH)), Block.oob())
+            b5 = course.blocks.get((floor(self.x + self.vx - Player.WIDTH), floor(self.y) + 1, floor(self.z + Player.WIDTH)), Block.oob())
+            b6 = course.blocks.get((floor(self.x + self.vx - Player.WIDTH), floor(self.y + Player.HEIGHT), floor(self.z + Player.WIDTH)), Block.oob())
             x_max = max(b1.x_max, b2.x_max, b3.x_max, b4.x_max, b5.x_max, b6.x_max)
             if x_max > -30000001.0 and self.vx < x_max - self.x:
                 collided = True
                 self.vx = x_max - self.x
         else:
-            b1 = course.blocks.get((int(self.x + self.vx + Player.WIDTH), int(self.y), int(self.z - Player.WIDTH)), Block.oob())
-            b2 = course.blocks.get((int(self.x + self.vx + Player.WIDTH), int(self.y) + 1, int(self.z - Player.WIDTH)), Block.oob())
-            b3 = course.blocks.get((int(self.x + self.vx + Player.WIDTH), int(self.y + Player.HEIGHT), int(self.z - Player.WIDTH)), Block.oob())
-            b4 = course.blocks.get((int(self.x + self.vx + Player.WIDTH), int(self.y), int(self.z + Player.WIDTH)), Block.oob())
-            b5 = course.blocks.get((int(self.x + self.vx + Player.WIDTH), int(self.y) + 1, int(self.z + Player.WIDTH)), Block.oob())
-            b6 = course.blocks.get((int(self.x + self.vx + Player.WIDTH), int(self.y + Player.HEIGHT), int(self.z + Player.WIDTH)), Block.oob())
+            b1 = course.blocks.get((floor(self.x + self.vx + Player.WIDTH), floor(self.y), floor(self.z - Player.WIDTH)), Block.oob())
+            b2 = course.blocks.get((floor(self.x + self.vx + Player.WIDTH), floor(self.y) + 1, floor(self.z - Player.WIDTH)), Block.oob())
+            b3 = course.blocks.get((floor(self.x + self.vx + Player.WIDTH), floor(self.y + Player.HEIGHT), floor(self.z - Player.WIDTH)), Block.oob())
+            b4 = course.blocks.get((floor(self.x + self.vx + Player.WIDTH), floor(self.y), floor(self.z + Player.WIDTH)), Block.oob())
+            b5 = course.blocks.get((floor(self.x + self.vx + Player.WIDTH), floor(self.y) + 1, floor(self.z + Player.WIDTH)), Block.oob())
+            b6 = course.blocks.get((floor(self.x + self.vx + Player.WIDTH), floor(self.y + Player.HEIGHT), floor(self.z + Player.WIDTH)), Block.oob())
             x_min = min(b1.x_min, b2.x_min, b3.x_min, b4.x_min, b5.x_min, b6.x_min)
             if x_min < 30000001.0 and self.vx > x_min - self.x:
                 collided = True
                 self.vx = x_min - self.x
         self.x += self.vx
 
-        # z blockage
+        # z blockage (untested)
         if self.vz <= 0:
-            b1 = course.blocks.get((int(self.x - Player.WIDTH), int(self.y), int(self.z + self.vz - Player.WIDTH)), Block.oob())
-            b2 = course.blocks.get((int(self.x - Player.WIDTH), int(self.y) + 1, int(self.z + self.vz - Player.WIDTH)), Block.oob())
-            b3 = course.blocks.get((int(self.x - Player.WIDTH), int(self.y + Player.HEIGHT), int(self.z + self.vz - Player.WIDTH)), Block.oob())
-            b4 = course.blocks.get((int(self.x + Player.WIDTH), int(self.y), int(self.z + self.vz - Player.WIDTH)), Block.oob())
-            b5 = course.blocks.get((int(self.x + Player.WIDTH), int(self.y) + 1, int(self.z + self.vz - Player.WIDTH)), Block.oob())
-            b6 = course.blocks.get((int(self.x + Player.WIDTH), int(self.y + Player.HEIGHT), int(self.z + self.vz - Player.WIDTH)), Block.oob())
+            b1 = course.blocks.get((floor(self.x - Player.WIDTH), floor(self.y), floor(self.z + self.vz - Player.WIDTH)), Block.oob())
+            b2 = course.blocks.get((floor(self.x - Player.WIDTH), floor(self.y) + 1, floor(self.z + self.vz - Player.WIDTH)), Block.oob())
+            b3 = course.blocks.get((floor(self.x - Player.WIDTH), floor(self.y + Player.HEIGHT), floor(self.z + self.vz - Player.WIDTH)), Block.oob())
+            b4 = course.blocks.get((floor(self.x + Player.WIDTH), floor(self.y), floor(self.z + self.vz - Player.WIDTH)), Block.oob())
+            b5 = course.blocks.get((floor(self.x + Player.WIDTH), floor(self.y) + 1, floor(self.z + self.vz - Player.WIDTH)), Block.oob())
+            b6 = course.blocks.get((floor(self.x + Player.WIDTH), floor(self.y + Player.HEIGHT), floor(self.z + self.vz - Player.WIDTH)), Block.oob())
             z_max = max(b1.z_max, b2.z_max, b3.z_max, b4.z_max, b5.z_max, b6.z_max)
             if z_max > -30000001.0 and self.vz < z_max - self.z:
                 collided = True
                 self.vz = z_max - self.z
         else:
-            b1 = course.blocks.get((int(self.x - Player.WIDTH), int(self.y), int(self.z + self.vz + Player.WIDTH)), Block.oob())
-            b2 = course.blocks.get((int(self.x - Player.WIDTH), int(self.y) + 1, int(self.z + self.vz + Player.WIDTH)), Block.oob())
-            b3 = course.blocks.get((int(self.x - Player.WIDTH), int(self.y + Player.HEIGHT), int(self.z + self.vz + Player.WIDTH)), Block.oob())
-            b4 = course.blocks.get((int(self.x + Player.WIDTH), int(self.y), int(self.z + self.vz + Player.WIDTH)), Block.oob())
-            b5 = course.blocks.get((int(self.x + Player.WIDTH), int(self.y) + 1, int(self.z + self.vz + Player.WIDTH)), Block.oob())
-            b6 = course.blocks.get((int(self.x + Player.WIDTH), int(self.y + Player.HEIGHT), int(self.z + self.vz + Player.WIDTH)), Block.oob())
+            b1 = course.blocks.get((floor(self.x - Player.WIDTH), floor(self.y), floor(self.z + self.vz + Player.WIDTH)), Block.oob())
+            b2 = course.blocks.get((floor(self.x - Player.WIDTH), floor(self.y) + 1, floor(self.z + self.vz + Player.WIDTH)), Block.oob())
+            b3 = course.blocks.get((floor(self.x - Player.WIDTH), floor(self.y + Player.HEIGHT), floor(self.z + self.vz + Player.WIDTH)), Block.oob())
+            b4 = course.blocks.get((floor(self.x + Player.WIDTH), floor(self.y), floor(self.z + self.vz + Player.WIDTH)), Block.oob())
+            b5 = course.blocks.get((floor(self.x + Player.WIDTH), floor(self.y) + 1, floor(self.z + self.vz + Player.WIDTH)), Block.oob())
+            b6 = course.blocks.get((floor(self.x + Player.WIDTH), floor(self.y + Player.HEIGHT), floor(self.z + self.vz + Player.WIDTH)), Block.oob())
             z_min = min(b1.z_min, b2.z_min, b3.z_min, b4.z_min, b5.z_min, b6.z_min)
             if z_min < 30000001.0 and self.vz > z_min - self.z:
                 collided = True
