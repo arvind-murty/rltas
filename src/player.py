@@ -116,7 +116,7 @@ class Player:
                     facing_rad = float32(self.facing * float32(0.017453292))
                     self.vx -= self.mcsin(facing_rad) * float32(0.2)
                     self.vz += self.mccos(facing_rad) * float32(0.2)
-            drag = float32(0.91) * float32(0.6)
+            drag = float32(0.91) * self.ground_slip
             movement *= float32(0.16277136) / (drag * drag * drag)
             
         forward = float32(0.0)
